@@ -15,7 +15,7 @@ export default function LandingPage() {
       />
 
       {/* Título */}
-      <h1 className="title">📚 Booky</h1>
+      <h1 className="title">📚 Booky Web</h1>
 
       {/* Descripción */}
       <p className="description">
