@@ -1,6 +1,7 @@
 // src/app.js
 const express = require("express");
 const cors = require("cors");
+const config = require("./config");
 const app = express();
 
 // Middleware
@@ -16,7 +17,7 @@ const librosRoutes = require("./routes/libros.routes");
 app.use("/api/libros", librosRoutes);
 
 // Iniciar servidor
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Servidor backend corriendo en http://localhost:${PORT}`);
+app.listen(config.PORT, () => {
+  console.log(`Servidor backend corriendo en http://localhost:${config.PORT}`);
 });
+

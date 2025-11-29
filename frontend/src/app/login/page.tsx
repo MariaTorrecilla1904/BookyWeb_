@@ -2,21 +2,37 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLogin } from "@/features/auth/model/useLogin";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login, loading, error } = useLogin();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [localError, setLocalError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Email: ${email}\nPassword: ${password}`);
+    setLocalError("");
+
+    // Validación básica del cliente
+    if (!email || !password) {
+      setLocalError("Por favor completa todos los campos");
+      return;
+    }
+
+    const success = await login(email, password);
+    if (!success) {
+      // El error ya está en el hook
+    }
   };
 
   // Redirigir a la página de registro
   const handleRegister = () => {
     router.push("/register");
   };
+
+  const displayError = localError || error;
 
   return (
     <div className="login-page">
@@ -29,6 +45,12 @@ export default function LoginPage() {
 
       {/* Formulario */}
       <form onSubmit={handleSubmit} className="form">
+        {displayError && (
+          <div className="error-message">
+            ⚠️ {displayError}
+          </div>
+        )}
+
         <div className="input-container">
           <input
             type="email"
@@ -36,6 +58,7 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="input-field"
+            disabled={loading}
           />
         </div>
 
@@ -46,6 +69,7 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="input-field"
+            disabled={loading}
           />
         </div>
 
@@ -53,10 +77,15 @@ export default function LoginPage() {
           <span className="text-link">¿Olvidaste tu contraseña?</span>
         </div>
 
-        <button type="submit" className="submit-btn">
-          Entrar
+        <button type="submit" className="submit-btn" disabled={loading}>
+          {loading ? "Cargando..." : "Entrar"}
         </button>
-        <button type="button" onClick={handleRegister} className="submit-btn register-btn">
+        <button 
+          type="button" 
+          onClick={handleRegister} 
+          className="submit-btn register-btn"
+          disabled={loading}
+        >
           Registrar
         </button>
       </form>
@@ -65,6 +94,7 @@ export default function LoginPage() {
       <button
         onClick={() => router.push("/")}
         className="back-button"
+        disabled={loading}
       >
         ← Volver al inicio
       </button>
@@ -79,7 +109,7 @@ export default function LoginPage() {
           justify-content: center;
           align-items: center;
           min-height: 100vh;
-          background: linear-gradient(135deg, #00aaff, #1e88e5); /* Gradiente de fondo */
+          background: linear-gradient(135deg, #00aaff, #1e88e5);
           color: white;
           font-family: 'Poppins', sans-serif;
           padding: 20px;
@@ -87,7 +117,7 @@ export default function LoginPage() {
 
         .header {
           text-align: center;
-          margin-bottom: 50px; /* Más espacio para que no se vea apretado */
+          margin-bottom: 50px;
         }
 
         .logo {
@@ -96,45 +126,58 @@ export default function LoginPage() {
         }
 
         .title {
-          font-size: 2.8rem; /* Tamaño más grande */
+          font-size: 2.8rem;
           font-weight: 600;
           margin-bottom: 10px;
         }
 
         .subtitle {
-          font-size: 1.2rem; /* Tamaño de subtítulo un poco más grande */
+          font-size: 1.2rem;
           color: #e0e0e0;
         }
 
         .form {
           width: 100%;
-          max-width: 420px; /* Amplié el contenedor del formulario */
+          max-width: 420px;
           background-color: white;
-          padding: 40px; /* Más espacio en el interior */
-          border-radius: 12px; /* Bordes más redondeados */
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Sombra más prominente */
-          margin-bottom: 30px; /* Más espacio debajo del formulario */
+          padding: 40px;
+          border-radius: 12px;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+          margin-bottom: 30px;
           display: flex;
           flex-direction: column;
           justify-content: center;
           align-items: center;
         }
 
+        .error-message {
+          width: 100%;
+          padding: 12px;
+          margin-bottom: 20px;
+          background-color: #ffebee;
+          color: #c62828;
+          border-left: 4px solid #c62828;
+          border-radius: 4px;
+          font-size: 0.9rem;
+          text-align: center;
+        }
+
         .input-container {
           width: 100%;
-          margin-bottom: 20px; /* Más espacio entre los campos */
+          margin-bottom: 20px;
           display: flex;
-          justify-content: center; /* Centra los campos */
+          justify-content: center;
         }
 
         .input-field {
           width: 100%;
-          max-width: 350px; /* Limita el ancho de los campos */
-          padding: 18px; /* Más espacio en los campos */
+          max-width: 350px;
+          padding: 18px;
           border-radius: 8px;
           border: 1px solid #ccc;
-          font-size: 1.1rem; /* Tamaño de fuente mayor */
+          font-size: 1.1rem;
           transition: border 0.3s ease;
+          color: #333;
         }
 
         .input-field:focus {
@@ -142,9 +185,16 @@ export default function LoginPage() {
           outline: none;
         }
 
+        .input-field:disabled {
+          background-color: #f5f5f5;
+          cursor: not-allowed;
+        }
+
         .forgot-password {
           text-align: right;
           margin-bottom: 20px;
+          width: 100%;
+          max-width: 350px;
         }
 
         .text-link {
@@ -158,7 +208,7 @@ export default function LoginPage() {
           padding: 18px;
           background-color: #1e88e5;
           color: white;
-          font-size: 1.2rem; /* Mayor tamaño de fuente en los botones */
+          font-size: 1.2rem;
           font-weight: 600;
           border: none;
           border-radius: 8px;
@@ -167,20 +217,29 @@ export default function LoginPage() {
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
-        .submit-btn:hover {
+        .submit-btn:hover:not(:disabled) {
           background-color: #1565c0;
         }
 
+        .submit-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
         .register-btn {
-          background-color: #e53935; /* Rojo para registrar */
-          margin-top: 15px; /* Más espacio entre los botones */
+          background-color: #e53935;
+          margin-top: 15px;
+        }
+
+        .register-btn:hover:not(:disabled) {
+          background-color: #c62828;
         }
 
         .back-button {
-          padding: 14px 25px; /* Botón de regreso más grande */
+          padding: 14px 25px;
           background-color: #e53935;
           color: white;
-          font-size: 1.1rem; /* Tamaño mayor en el botón de regreso */
+          font-size: 1.1rem;
           font-weight: 600;
           border: none;
           border-radius: 8px;
@@ -190,21 +249,19 @@ export default function LoginPage() {
           margin-top: 30px;
         }
 
-        .back-button:hover {
+        .back-button:hover:not(:disabled) {
           background-color: #c62828;
         }
 
-        .register-link {
-          margin-top: 20px;
-          text-align: center;
-          color: white;
+        .back-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
 
         .text-link:hover {
           text-decoration: underline;
         }
 
-        /* Responsive design */
         @media (max-width: 768px) {
           .login-page {
             padding: 20px;
